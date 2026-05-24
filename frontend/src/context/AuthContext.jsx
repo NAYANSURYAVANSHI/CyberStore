@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await authAPI.login({ email, password });
       localStorage.setItem('token', res.data.token);
-      setUser(res.data.user);
+      setUser({ id: res.data.id, username: res.data.username, email: res.data.email, role: res.data.role });
       return { success: true };
     } catch (err) {
       console.error('Login error:', err);
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await authAPI.register({ username, email, password });
       localStorage.setItem('token', res.data.token);
-      setUser(res.data.user);
+      setUser({ id: res.data.id, username: res.data.username, email: res.data.email, role: res.data.role });
       return { success: true };
     } catch (err) {
       console.error('Registration error:', err);
