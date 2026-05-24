@@ -19,7 +19,7 @@ export const CartProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await cartAPI.get();
-      setCart(res.data || { items: [], totalPrice: 0 });
+      setCart(res.data.data || { items: [], totalPrice: 0 });
     } catch (err) {
       console.error('Error fetching cart:', err);
     } finally {
@@ -38,7 +38,7 @@ export const CartProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await cartAPI.addItem(productId, quantity);
-      setCart(res.data);
+      setCart(res.data.data);
       return { success: true };
     } catch (err) {
       console.error('Error adding to cart:', err);
@@ -56,7 +56,7 @@ export const CartProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await cartAPI.updateItem(itemId, quantity);
-      setCart(res.data);
+      setCart(res.data.data);
     } catch (err) {
       console.error('Error updating cart quantity:', err);
     } finally {
@@ -69,7 +69,7 @@ export const CartProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await cartAPI.removeItem(itemId);
-      setCart(res.data);
+      setCart(res.data.data);
     } catch (err) {
       console.error('Error removing item from cart:', err);
     } finally {
