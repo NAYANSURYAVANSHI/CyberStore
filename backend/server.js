@@ -36,7 +36,7 @@ app.get('/api', (req, res) => {
 });
 
 // Serve React app for all other routes (SPA fallback)
-app.get('*', (req, res) => {
+app.get('{*path}', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
