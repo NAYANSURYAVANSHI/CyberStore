@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     }
     try {
       const res = await authAPI.getMe();
-      setUser(res.data);
+      setUser(res.data.data);
     } catch (err) {
       console.error('Auth verification failed', err);
       localStorage.removeItem('token');
@@ -34,8 +34,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await authAPI.login({ email, password });
-      localStorage.setItem('token', res.data.token);
-      setUser({ id: res.data.id, username: res.data.username, email: res.data.email, role: res.data.role });
+      localStorage.setItem('token', res.data.data.token);
+      setUser(res.data.data);
       return { success: true };
     } catch (err) {
       console.error('Login error:', err);
@@ -52,8 +52,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await authAPI.register({ username, email, password });
-      localStorage.setItem('token', res.data.token);
-      setUser({ id: res.data.id, username: res.data.username, email: res.data.email, role: res.data.role });
+      localStorage.setItem('token', res.data.data.token);
+      setUser(res.data.data);
       return { success: true };
     } catch (err) {
       console.error('Registration error:', err);
