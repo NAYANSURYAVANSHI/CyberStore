@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { calculateCartPricing } from '../utils/cartPricing';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, X } from 'lucide-react';
 
@@ -26,19 +27,13 @@ const Cart = () => {
   const [couponError, setCouponError] = useState('');
   const [confirmClear, setConfirmClear] = useState(false);
 
-  const subtotal = cart?.totalPrice || 0;
-  const discount = coupon ? subtotal * coupon.discount : 0;
-  const discountedSubtotal = subtotal - discount;
-
-  // Shipping Priority fee calculation
-  let shippingFee = 0;
-  if (shippingPriority === 'express') {
-    shippingFee = 15;
-  } else if (shippingPriority === 'standard') {
-    shippingFee = discountedSubtotal > 150 || subtotal === 0 ? 0 : 10;
-  }
-
-  const total = discountedSubtotal + shippingFee;
+  const {
+    subtotal,
+    discount,
+    shippingFee,
+    total,
+    freeShippingRemaining,
+  } = calculateCartPricing(cart, coupon, shippingPriority);
 
   const handleApplyPromo = () => {
     if (!couponInput.trim()) return;
@@ -202,7 +197,7 @@ const Cart = () => {
                   <span className="font-bold text-xs">Standard Shipping</span>
                   <span className="text-[10px] opacity-60 mt-0.5">Estimated 4-6 business days</span>
                   <span className="text-[10px] font-semibold text-primary mt-1">
-                    {discountedSubtotal > 150 ? 'FREE' : formatPrice(10)}
+                    {subtotal >= 150 ? 'FREE' : formatPrice(10)}
                   </span>
                 </button>
                 <button
@@ -283,7 +278,7 @@ const Cart = () => {
               </div>
               {shippingPriority === 'standard' && shippingFee > 0 && (
                 <div className="text-xs text-base-content/50 bg-base-100/50 p-2 rounded-xl border border-base-300/30">
-                  💡 Add <span className="font-semibold text-primary">{formatPrice(150 - discountedSubtotal)}</span> more for Free Shipping!
+                  Add <span className="font-semibold text-primary">{formatPrice(freeShippingRemaining)}</span> more for free shipping.
                 </div>
               )}
             </div>

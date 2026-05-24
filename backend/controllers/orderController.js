@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const { calculateCartPricing } = require('../utils/cartPricing');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -21,8 +22,6 @@ exports.createOrder = async (req, res, next) => {
 
     // Prepare order items and calculate subtotal
     const orderItems = [];
-    let subtotal = 0;
-
     for (const item of cart.items) {
       const product = item.product;
 
@@ -40,37 +39,11 @@ exports.createOrder = async (req, res, next) => {
         price_at_purchase: product.price,
       });
 
-      subtotal += product.price * item.quantity;
-
       // Update product stock
       product.stock_quantity -= item.quantity;
       await product.save();
     }
-
-    // Apply Coupon Code if present
-    let discount = 0;
-    if (couponCode) {
-      const code = couponCode.toUpperCase().trim();
-      const coupons = {
-        'CYBER20': 0.20,
-        'WELCOME10': 0.10,
-        'HARDWARE5': 0.05,
-      };
-      if (coupons[code] !== undefined) {
-        discount = subtotal * coupons[code];
-      }
-    }
-
-    // Apply Shipping priority fee
-    let shippingFee = 0;
-    const discountedSubtotal = subtotal - discount;
-    if (shippingPriority === 'express') {
-      shippingFee = 15;
-    } else {
-      shippingFee = discountedSubtotal > 150 || subtotal === 0 ? 0 : 10;
-    }
-
-    const totalAmount = discountedSubtotal + shippingFee;
+    const { totalAmount } = calculateCartPricing(orderItems, couponCode, shippingPriority);
 
     // Create order
     const order = await Order.create({

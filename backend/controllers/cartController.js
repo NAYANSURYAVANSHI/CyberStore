@@ -1,20 +1,47 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 
+const formatCartResponse = async (userId) => {
+  const cart = await Cart.findOne({ user: userId }).populate('items.product');
+
+  if (!cart) {
+    return null;
+  }
+
+  const validItems = cart.items.filter(item => item.product);
+  if (validItems.length !== cart.items.length) {
+    cart.items = validItems;
+    await cart.save();
+  }
+
+  const totalPrice = validItems.reduce(
+    (sum, item) => sum + (item.product.price * item.quantity),
+    0
+  );
+
+  const cartObject = cart.toObject();
+  cartObject.items = validItems;
+  cartObject.totalPrice = Number(totalPrice.toFixed(2));
+
+  return cartObject;
+};
+
 // @desc    Get user cart
 // @route   GET /api/cart
 // @access  Private
 exports.getCart = async (req, res, next) => {
   try {
-    let cart = await Cart.findOne({ user: req.user.id }).populate('items.product');
+    let cart = await Cart.findOne({ user: req.user.id });
 
     if (!cart) {
       cart = await Cart.create({ user: req.user.id, items: [] });
     }
 
+    const cartData = await formatCartResponse(req.user.id);
+
     res.status(200).json({
       success: true,
-      data: cart,
+      data: cartData,
     });
   } catch (error) {
     next(error);
@@ -68,11 +95,11 @@ exports.addToCart = async (req, res, next) => {
       await cart.save();
     }
 
-    cart = await Cart.findOne({ user: req.user.id }).populate('items.product');
+    const cartData = await formatCartResponse(req.user.id);
 
     res.status(200).json({
       success: true,
-      data: cart,
+      data: cartData,
     });
   } catch (error) {
     next(error);
@@ -116,7 +143,7 @@ exports.updateCartItem = async (req, res, next) => {
     item.quantity = quantity;
     await cart.save();
 
-    const updatedCart = await Cart.findOne({ user: req.user.id }).populate('items.product');
+    const updatedCart = await formatCartResponse(req.user.id);
 
     res.status(200).json({
       success: true,
@@ -146,7 +173,7 @@ exports.removeFromCart = async (req, res, next) => {
     cart.items = cart.items.filter(item => item._id.toString() !== itemId);
     await cart.save();
 
-    const updatedCart = await Cart.findOne({ user: req.user.id }).populate('items.product');
+    const updatedCart = await formatCartResponse(req.user.id);
 
     res.status(200).json({
       success: true,
@@ -174,10 +201,12 @@ exports.clearCart = async (req, res, next) => {
     cart.items = [];
     await cart.save();
 
+    const cartData = await formatCartResponse(req.user.id);
+
     res.status(200).json({
       success: true,
       message: 'Cart cleared successfully',
-      data: cart,
+      data: cartData,
     });
   } catch (error) {
     next(error);

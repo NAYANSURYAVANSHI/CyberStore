@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { calculateCartPricing } from '../utils/cartPricing';
 import { ordersAPI } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCard, Truck, ShieldCheck, CheckCircle2, ShoppingBag, ArrowLeft } from 'lucide-react';
@@ -32,19 +33,11 @@ const Checkout = () => {
 
   const { coupon, shippingPriority } = useCart();
 
-  const subtotal = cart?.totalPrice || 0;
-  const discount = coupon ? subtotal * coupon.discount : 0;
-  const discountedSubtotal = subtotal - discount;
-
-  // Shipping Priority fee calculation
-  let shippingFee = 0;
-  if (shippingPriority === 'express') {
-    shippingFee = 15;
-  } else if (shippingPriority === 'standard') {
-    shippingFee = discountedSubtotal > 150 || subtotal === 0 ? 0 : 10;
-  }
-
-  const total = discountedSubtotal + shippingFee;
+  const { subtotal, discount, shippingFee, total } = calculateCartPricing(
+    cart,
+    coupon,
+    shippingPriority
+  );
 
   const handleAddressChange = (e) => {
     setAddress({ ...address, [e.target.name]: e.target.value });
