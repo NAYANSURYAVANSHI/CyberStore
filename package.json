@@ -4,8 +4,8 @@
   "description": "Full-stack E-Commerce Application",
   "main": "backend/server.js",
   "scripts": {
-    "build": "cd frontend && npm install --include=dev && npm run build && cd ../backend && npm install",
-    "start": "cd backend && node server.js",
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "cd backend && npm install && node server.js",
     "dev": "concurrently \"cd frontend && npm run dev\" \"cd backend && npm run dev\"",
     "install-deps": "npm install --prefix frontend && npm install --prefix backend"
   },
